@@ -51,6 +51,11 @@ h2{font-size:16px;margin:30px 0 12px;display:flex;align-items:center;gap:8px}
 h2 .tag{font-size:11px;font-weight:600;color:var(--accent);border:1px solid var(--accent);
   border-radius:99px;padding:1px 8px;letter-spacing:.06em}
 .card{background:var(--surface);border:1px solid var(--ring);border-radius:12px}
+/* 資料過期警示 */
+.stale{display:none;background:var(--bad-bg);border:1px solid var(--bad);border-radius:10px;
+  padding:12px 16px;margin-bottom:14px;font-size:14px;line-height:1.5}
+.stale.on{display:block}
+.stale b{color:var(--bad)}
 /* KPI 帶 */
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:6px}
 .kpi{padding:12px 16px}
@@ -162,6 +167,8 @@ footer{margin-top:40px;font-size:12px;color:var(--muted)}
     </div>
   </header>
   <div class="sub" id="sub"></div>
+
+  <div class="stale" id="stale"></div>
 
   <div class="kpis" id="kpis"></div>
 
@@ -57950,4 +57957,18 @@ $('tabs').addEventListener('click', e=>{
 $('psel').onchange=()=>{ period=$('psel').value; render(); };
 $('tabs').querySelector('[data-v=day]').classList.add('on');
 fillSel(); render();
+
+// ── 資料過期警示：正常情況資料應到「昨天」。落後 2 天以上代表自動更新出問題了。
+// 這一層能抓到所有失敗情況（排程沒跑、資料夾被搬走、電腦沒開、API 失敗），
+// 因為它是在「開啟頁面的當下」比對日期，不依賴任何背景程式。
+(function(){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const last=new Date(DATA.latestDate+'T00:00:00');
+  const behind=Math.round((today-last)/86400000);
+  if(behind<2) return;
+  $('stale').className='stale on';
+  $('stale').innerHTML=`<b>⚠ 這份報表已經 ${behind} 天沒有更新了</b><br>
+    最新資料只到 <b>${mmdd(DATA.latestDate)}</b>，正常應該要有 ${mmdd(localISO(new Date(today-86400000)))} 的數據。
+    每天早上的自動更新可能失敗了，以下畫面不是最新狀況，請通知負責人檢查。`;
+})();
 </script>
