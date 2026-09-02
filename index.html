@@ -151,6 +151,12 @@ tr.ttl td{border-top:2px solid var(--baseline);font-weight:700;background:color-
 .carousel .card .cp{font-size:12.5px;font-weight:700;padding:0 8px 8px}
 .badge{display:inline-block;font-size:11px;font-weight:600;padding:1px 8px;border-radius:99px;
   background:var(--warn-bg);color:var(--ink);margin-left:6px}
+/* 年報：跨月比較 */
+.chart-ctrl{display:flex;align-items:center;gap:8px;margin:14px 0 10px}
+.chart-ctrl label{font-size:13px;color:var(--ink-2);display:flex;align-items:center;gap:8px}
+.yname{cursor:pointer;color:var(--accent)}
+.yname:hover{text-decoration:underline}
+.yexpand td{padding:10px 12px;background:color-mix(in srgb,var(--accent) 3%,transparent)}
 footer{margin-top:40px;font-size:12px;color:var(--muted)}
 </style>
 <div class="wrap">
@@ -161,7 +167,7 @@ footer{margin-top:40px;font-size:12px;color:var(--muted)}
     </div>
     <div class="controls">
       <div class="tabs" id="tabs">
-        <button data-v="day">日報</button><button data-v="week">週報</button><button data-v="month">月報</button>
+        <button data-v="day">日報</button><button data-v="week">週報</button><button data-v="month">月報</button><button data-v="year">年報</button>
       </div>
       <select id="psel"></select>
     </div>
@@ -172,26 +178,53 @@ footer{margin-top:40px;font-size:12px;color:var(--muted)}
 
   <div class="kpis" id="kpis"></div>
 
-  <h2>全產品總表 <span class="tag" id="tag-scope">總覽</span></h2>
-  <div class="card tblwrap"><table id="summary"></table></div>
-  <div class="sub" style="margin-top:8px">點擊率／點擊採「連外點擊」（實際離開 Facebook 前往賣場的點擊）；成交率 = 購買次數 ÷ 連外點擊；流量型廣告不計成交率與 ROAS。轉換價值以 Meta 購買轉換值計算，供參考。</div>
+  <div id="summarysec">
+    <h2>全產品總表 <span class="tag" id="tag-scope">總覽</span></h2>
+    <div class="card tblwrap"><table id="summary"></table></div>
+    <div class="sub" style="margin-top:8px">點擊率／點擊採「連外點擊」（實際離開 Facebook 前往賣場的點擊）；成交率 = 購買次數 ÷ 連外點擊；流量型廣告不計成交率與 ROAS。轉換價值以 Meta 購買轉換值計算，供參考。</div>
+  </div>
 
   <div id="dailysec">
     <h2>每日成效</h2>
     <div class="card tblwrap"><table id="dailytbl"></table></div>
   </div>
 
-  <h2>帳號一覽</h2>
-  <div class="tiles" id="tiles"></div>
+  <div id="yearsec" style="display:none">
+    <h2>整體 5～9 月趨勢</h2>
+    <div class="card tblwrap"><table id="yearCompare"></table></div>
+    <div class="chart-ctrl">
+      <label>指標
+        <select id="yearTrendMetric"></select>
+      </label>
+    </div>
+    <div class="card chart"><div id="yearTrendChart"></div></div>
 
-  <h2 id="trend-h">趨勢</h2>
-  <div class="charts">
-    <div class="card chart"><div class="t">每日總花費（元）</div><div id="c-spend"></div></div>
-    <div class="card chart"><div class="t">CPAS 綜合 ROAS（轉換價值 ÷ 花費）</div><div id="c-roas"></div></div>
+    <h2>各產品 5～9 月趨勢</h2>
+    <div class="chart-ctrl">
+      <label>指標
+        <select id="yearProdMetric"></select>
+      </label>
+    </div>
+    <div class="card tblwrap"><table id="yearProdTbl"></table></div>
   </div>
 
-  <h2>各產品明細</h2>
-  <div id="rows"></div>
+  <div id="tilessec">
+    <h2>帳號一覽</h2>
+    <div class="tiles" id="tiles"></div>
+  </div>
+
+  <div id="trendsec">
+    <h2 id="trend-h">趨勢</h2>
+    <div class="charts">
+      <div class="card chart"><div class="t">每日總花費（元）</div><div id="c-spend"></div></div>
+      <div class="card chart"><div class="t">CPAS 綜合 ROAS（轉換價值 ÷ 花費）</div><div id="c-roas"></div></div>
+    </div>
+  </div>
+
+  <div id="rowssec">
+    <h2>各產品明細</h2>
+    <div id="rows"></div>
+  </div>
 
   <footer id="foot"></footer>
 </div>
@@ -78595,6 +78628,11 @@ const weeks = [...new Set(dataDates.map(d=>weekOf(d)[0]))].sort().map(s=>{const 
   return {v:`w:${a}`,a,b,label:`${mmdd(a)} – ${mmdd(b)}${b>lastData?'（進行中）':''}`};});
 const months = [...new Set(dataDates.map(d=>d.slice(0,7)))].sort().map(m=>({v:`m:${m}`,a:`${m}-01`,b:`${m}-31`,
   label:`${+m.slice(5)}月（${m.slice(0,4)}）${`${m}-31`>lastData?'（進行中）':''}`}));
+const years = [...new Set(months.map(m=>m.a.slice(0,4)))].map(y=>{
+  const ms=months.filter(m=>m.a.slice(0,4)===y);
+  const b=`${y}-12-31`;
+  return {v:`y:${y}`, a:`${y}-01-01`, b, label:`${y}年${b>lastData?'（進行中）':''}`, months:ms};
+});
 
 function periodDates(a,b){ return dataDates.filter(d=>d>=a&&d<=b); }
 function clicksOf(c){ return c.linkClicks!=null ? c.linkClicks
@@ -78659,17 +78697,18 @@ let view='day', period=null;
 function options(){
   if(view==='day') return [...dataDates].reverse().map(d=>({v:d,label:`${mmdd(d)}（${wd(d)}）`}));
   if(view==='week') return [...weeks].reverse();
+  if(view==='year') return [...years].reverse();
   return [...months].reverse();
 }
 function bounds(){
   if(view==='day') return [period,period];
-  const list = view==='week'?weeks:months;
+  const list = view==='week'?weeks:view==='year'?years:months;
   const p = list.find(x=>x.v===period);
   return [p.a,p.b];
 }
 function prevBounds(){
   if(view==='day'){ const i=dataDates.indexOf(period); return i>0?[dataDates[i-1],dataDates[i-1]]:null; }
-  const list=view==='week'?weeks:months; const i=list.findIndex(x=>x.v===period);
+  const list=view==='week'?weeks:view==='year'?years:months; const i=list.findIndex(x=>x.v===period);
   return i>0?[list[i-1].a,list[i-1].b]:null;
 }
 // goodDir: 1=越高越好, -1=越低越好, 0=中性
@@ -78692,45 +78731,22 @@ function render(){
   const [a,b]=bounds(); const ds=periodDates(a,b);
   const pb=prevBounds(); const pds=pb?periodDates(pb[0],pb[1]):[];
   const PT=pds.length?totalsOf(pds):null;
-  const prevLabel= view==='day'?'前一日':view==='week'?'前一週':'前一月';
-  const scope = view==='day'?`日報 — ${mmdd(a)}（${wd(a)}）`: view==='week'?`週報 — ${mmdd(a)} – ${mmdd(b)}`:`月報 — ${+a.slice(5,7)}月`;
+  const prevLabel= view==='day'?'前一日':view==='week'?'前一週':view==='year'?'前一年':'前一月';
+  const scope = view==='day'?`日報 — ${mmdd(a)}（${wd(a)}）`: view==='week'?`週報 — ${mmdd(a)} – ${mmdd(b)}`: view==='year'?`年報 — ${a.slice(0,4)}年`:`月報 — ${+a.slice(5,7)}月`;
   $('h-title').textContent=`廣告成效儀表板`;
-  $('tag-scope').textContent= view==='day'?'日':'week'===view?'週':'月';
+  $('tag-scope').textContent= view==='day'?'日':view==='week'?'週':view==='year'?'年':'月';
   $('sub').textContent=`${scope} ｜ 數據截止：${mmdd(ds[ds.length-1]||a)} 23:59 ｜ 來源：Meta Marketing API（四個廣告帳號）`;
 
   // KPI 帶（全產品，附與前期比較）
   const per = prodRows.map(r=>({r, m:META[r.name], t:agg(r,ds)})).filter(x=>x.t.days>0);
   const T=totalsOf(ds);
-  const tRoas=T.roas, tCpm=T.cpm;
-  const kdef=[
-    ['總花費',money(T.spend),null,PT&&delta(T.spend,PT.spend,0)],
-    ['轉換價值',money(T.sales),null,PT&&delta(T.sales,PT.sales,1)],
-    ['整體 ROAS',fm(tRoas,2),tRoas>=3?'g':(tRoas<1?'b':''),PT&&delta(tRoas,PT.roas,1)],
-    ['購買次數',fm(T.pur)+'次',null,PT&&delta(T.pur,PT.pur,1)],
-    ['平均 CPA',money(T.cpa),null,PT&&delta(T.cpa,PT.cpa,-1)],
-    ['平均 CPM',money(tCpm),null,PT&&delta(tCpm,PT.cpm,-1)],
-  ];
-  $('kpis').innerHTML=kdef.map(([k,v,c,d])=>`<div class="card kpi"><div class="k">${k}${d?` <span class="dim" style="font-size:10px">vs ${prevLabel}</span>`:''}</div><div class="v ${c||''}">${v}${d||''}</div></div>`).join('');
+  $('kpis').innerHTML=kpiHTML(T,PT,prevLabel);
 
   // 總表
-  let rowsHtml='';
-  const sorted=[...per].sort((x,y)=>(y.t.roas||-1)-(x.t.roas||-1)||(y.t.spend-x.t.spend));
-  for(const {m,t} of sorted){
-    const roasCls=t.roas==null?'':(t.roas>=3?'g':(t.roas<1?'b':''));
-    rowsHtml+=`<tr><td>${m.label}<span class="chip ${m.type}">${m.ch}·${m.type==='cpas'?'CPAS':'流量'}</span></td>
-      <td>${money(t.spend)}</td><td>${pct(t.ctr)}</td>
-      <td>${m.type==='cpas'?pct(t.cvr):'<span class="dim">—</span>'}</td>
-      <td>${m.type==='cpas'?`<span class="roas ${roasCls}">${fm(t.roas,2)}</span>`:'<span class="dim">—</span>'}</td>
-      <td>${m.type==='cpas'?money(t.sales):'<span class="dim">—</span>'}</td>
-      <td>${m.type==='cpas'?fm(t.pur)+'次':fm(t.clicks)+'點擊'}</td></tr>`;
-  }
-  const tCtr=T.imp?T.clicks/T.imp*100:null, tCvr=T.clicks?T.pur/T.clicks*100:null;
-  $('summary').innerHTML=`<thead><tr><th>產品類別</th><th>花費</th><th>點擊率</th><th>成交率</th><th>ROAS</th><th>轉換價值</th><th>購買/點擊</th></tr></thead>
-    <tbody>${rowsHtml}<tr class="ttl"><td>全產品合計</td><td>${money(T.spend)}</td><td>${pct(tCtr)}</td>
-    <td>${pct(tCvr)}</td><td><span class="roas ${tRoas>=3?'g':(tRoas<1?'b':'')}">${fm(tRoas,2)}</span></td><td>${money(T.sales)}</td><td>${fm(T.pur)}次</td></tr></tbody>`;
+  $('summary').innerHTML=summaryHTML(per,T);
 
   // 每日成效（週/月報）
-  if(view!=='day' && ds.length){
+  if(view!=='day' && view!=='year' && ds.length){
     $('dailysec').style.display='';
     let dh='';
     let bestD=null,worstD=null;
@@ -78758,7 +78774,7 @@ function render(){
   // 趨勢
   let win=ds;
   if(view==='day'){ const idx=dataDates.indexOf(a); win=dataDates.slice(Math.max(0,idx-13),idx+1); }
-  $('trend-h').textContent= view==='day'?'近 14 日趨勢': view==='week'?'本週趨勢':'本月趨勢';
+  $('trend-h').textContent= view==='day'?'近 14 日趨勢': view==='week'?'本週趨勢': view==='year'?'本年趨勢':'本月趨勢';
   const spendSeries=win.map(d=>{let s=0;for(const r of prodRows){const c=r.byDate[d];if(c&&c.spend)s+=c.spend;}return s;});
   const roasSeries=win.map(d=>{let s=0,v=0;for(const r of prodRows){if(META[r.name].type!=='cpas')continue;const c=r.byDate[d];if(c&&c.spend){s+=c.spend;v+=c.sales||0;}}return s?v/s:null;});
   $('c-spend').innerHTML=barChart(win,spendSeries, view==='day'?a:null);
@@ -78770,7 +78786,54 @@ function render(){
   $('c-roas').innerHTML=lineChart(win,roasSeries, view==='day'?a:null, ma);
 
   // 各產品明細（每產品一列）
-  $('rows').innerHTML=per.map(({r,m,t})=>{
+  $('rows').innerHTML=productRowsHTML(per,a,b,pds);
+
+  // 年報：跨月比較（不重複月報內容，只留 A/B/C 三區塊）
+  const isYear = view==='year';
+  $('summarysec').style.display = isYear?'none':'';
+  $('tilessec').style.display = isYear?'none':'';
+  $('trendsec').style.display = isYear?'none':'';
+  $('rowssec').style.display = isYear?'none':'';
+  if(isYear){
+    $('yearsec').style.display='';
+    renderYearSection();
+  } else $('yearsec').style.display='none';
+
+  $('foot').textContent=`報表產生時間：${DATA.generatedAt.slice(0,16).replace('T',' ')} UTC ｜ 資料日期範圍：${mmdd(dataDates[0])} – ${mmdd(dataDates[dataDates.length-1])}`;
+}
+
+// ── 可重用區塊（也供年報使用）
+function kpiHTML(T,PT,prevLabel){
+  const tRoas=T.roas, tCpm=T.cpm;
+  const kdef=[
+    ['總花費',money(T.spend),null,PT&&delta(T.spend,PT.spend,0)],
+    ['轉換價值',money(T.sales),null,PT&&delta(T.sales,PT.sales,1)],
+    ['整體 ROAS',fm(tRoas,2),tRoas>=3?'g':(tRoas<1?'b':''),PT&&delta(tRoas,PT.roas,1)],
+    ['購買次數',fm(T.pur)+'次',null,PT&&delta(T.pur,PT.pur,1)],
+    ['平均 CPA',money(T.cpa),null,PT&&delta(T.cpa,PT.cpa,-1)],
+    ['平均 CPM',money(tCpm),null,PT&&delta(tCpm,PT.cpm,-1)],
+  ];
+  return kdef.map(([k,v,c,d])=>`<div class="card kpi"><div class="k">${k}${d?` <span class="dim" style="font-size:10px">vs ${prevLabel}</span>`:''}</div><div class="v ${c||''}">${v}${d||''}</div></div>`).join('');
+}
+function summaryHTML(per,T){
+  let rowsHtml='';
+  const sorted=[...per].sort((x,y)=>(y.t.roas||-1)-(x.t.roas||-1)||(y.t.spend-x.t.spend));
+  for(const {m,t} of sorted){
+    const roasCls=t.roas==null?'':(t.roas>=3?'g':(t.roas<1?'b':''));
+    rowsHtml+=`<tr><td>${m.label}<span class="chip ${m.type}">${m.ch}·${m.type==='cpas'?'CPAS':'流量'}</span></td>
+      <td>${money(t.spend)}</td><td>${pct(t.ctr)}</td>
+      <td>${m.type==='cpas'?pct(t.cvr):'<span class="dim">—</span>'}</td>
+      <td>${m.type==='cpas'?`<span class="roas ${roasCls}">${fm(t.roas,2)}</span>`:'<span class="dim">—</span>'}</td>
+      <td>${m.type==='cpas'?money(t.sales):'<span class="dim">—</span>'}</td>
+      <td>${m.type==='cpas'?fm(t.pur)+'次':fm(t.clicks)+'點擊'}</td></tr>`;
+  }
+  const tRoas=T.roas, tCtr=T.imp?T.clicks/T.imp*100:null, tCvr=T.clicks?T.pur/T.clicks*100:null;
+  return `<thead><tr><th>產品類別</th><th>花費</th><th>點擊率</th><th>成交率</th><th>ROAS</th><th>轉換價值</th><th>購買/點擊</th></tr></thead>
+    <tbody>${rowsHtml}<tr class="ttl"><td>全產品合計</td><td>${money(T.spend)}</td><td>${pct(tCtr)}</td>
+    <td>${pct(tCvr)}</td><td><span class="roas ${tRoas>=3?'g':(tRoas<1?'b':'')}">${fm(tRoas,2)}</span></td><td>${money(T.sales)}</td><td>${fm(T.pur)}次</td></tr></tbody>`;
+}
+function productRowsHTML(per,a,b,pds){
+  return per.map(({r,m,t})=>{
     const auds=aggBr('audiences',r.name,a,b), crs=aggBr('creatives',r.name,a,b);
     const sortKey=m.type==='cpas'?(x=>x.sales):(x=>x.clicks);
     const bestA=[...auds].sort((x,y)=>sortKey(y)-sortKey(x)).slice(0,3);
@@ -78815,8 +78878,104 @@ function render(){
       <div class="sugg sec"><div class="h">廣告調整建議</div><ul>${sug.map(s=>`<li>${s}</li>`).join('')}</ul></div>
     </div>`;
   }).join('');
+}
 
-  $('foot').textContent=`報表產生時間：${DATA.generatedAt.slice(0,16).replace('T',' ')} UTC ｜ 資料日期範圍：${mmdd(dataDates[0])} – ${mmdd(dataDates[dataDates.length-1])}`;
+// ── 年報：跨月比較（只回答 Overall×Month 與 Product×Month，不重複月報內容）
+const METRICS = [
+  {key:'spend', label:'花費',     calc:T=>T.spend, fmt:money,          goodDir:0},
+  {key:'sales', label:'轉換價值', calc:T=>T.sales, fmt:money,          goodDir:1},
+  {key:'roas',  label:'ROAS',    calc:T=>T.roas,  fmt:v=>fm(v,2),      goodDir:1},
+  {key:'pur',   label:'購買次數', calc:T=>T.pur,   fmt:v=>fm(v)+'次',   goodDir:1},
+  {key:'cpa',   label:'CPA',     calc:T=>T.cpa,   fmt:money,          goodDir:-1},
+  {key:'cpm',   label:'CPM',     calc:T=>T.cpm,   fmt:money,          goodDir:-1},
+  {key:'ctr',   label:'CTR',     calc:T=>T.ctr,   fmt:pct,            goodDir:1},
+  {key:'cvr',   label:'成交率',   calc:T=>T.cvr,   fmt:pct,            goodDir:1},
+];
+const PRODUCT_METRICS = ['roas','spend','sales','pur','cpa','ctr'].map(k=>METRICS.find(m=>m.key===k));
+
+function yearTotals(ds){
+  const T=totalsOf(ds);
+  T.ctr=T.imp?T.clicks/T.imp*100:null; T.cvr=T.clicks?T.pur/T.clicks*100:null;
+  return T;
+}
+function currentYearMonths(){ const yr=years.find(x=>x.v===period); return yr?yr.months:[]; }
+function fillMetricSelect(sel,list,def){ sel.innerHTML=list.map(m=>`<option value="${m.key}">${m.label}</option>`).join(''); sel.value=def; }
+
+// 小型月趨勢折線圖（5個資料點；small=true 時為產品列展開用的迷你版）
+function monthTrendChart(labels, vals, fmt, small){
+  const vs=vals.filter(v=>v!=null);
+  if(!vs.length) return '<div class="dim" style="font-size:12px;padding:10px 0">無資料</div>';
+  const W=small?260:480, H=small?92:200, P={l:small?8:44,r:8,t:small?10:16,b:small?18:26};
+  const max=Math.max(...vs)*1.15||1, min=Math.min(0,Math.min(...vs));
+  const X=i=>P.l+(W-P.l-P.r)*(labels.length===1?0.5:i/(labels.length-1));
+  const Y=v=>H-P.b-(H-P.t-P.b)*(v-min)/((max-min)||1);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="月趨勢圖">`;
+  if(!small) for(let g=0;g<=3;g++){ const y=P.t+(H-P.t-P.b)*g/3;
+    s+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`; }
+  let path='', started=false;
+  labels.forEach((d,i)=>{ const v=vals[i]; if(v==null){started=false;return;}
+    path+=(started?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)+' '; started=true; });
+  s+=`<path d="${path}" fill="none" stroke="var(--accent)" stroke-width="${small?1.5:2.5}" stroke-linejoin="round"/>`;
+  labels.forEach((d,i)=>{ const v=vals[i]; if(v==null) return;
+    s+=`<circle cx="${X(i)}" cy="${Y(v)}" r="${small?2.5:4}" fill="var(--accent)" stroke="var(--surface)" stroke-width="1.5"/>`;
+    if(!small){
+      s+=`<text x="${X(i)}" y="${Math.max(12,Y(v)-10)}" text-anchor="middle" style="fill:var(--ink);font-weight:700">${fmt(v)}</text>`;
+      s+=`<text x="${X(i)}" y="${H-6}" text-anchor="middle">${d}</text>`;
+    }
+  });
+  return s+'</svg>';
+}
+
+function renderYearSection(){
+  const ms=currentYearMonths();
+  const monthTotals=ms.map(mo=>({mo, T:yearTotals(periodDates(mo.a,mo.b))}));
+  // B-1：月份比較表（指標為列、月份為欄）
+  const th='<thead><tr><th>指標</th>'+monthTotals.map(({mo})=>`<th>${+mo.a.slice(5,7)}月</th>`).join('')+'</tr></thead>';
+  const tb='<tbody>'+METRICS.map(met=>{
+    const cells=monthTotals.map(({T})=>{ const v=met.calc(T); return `<td>${v==null||isNaN(v)?'—':met.fmt(v)}</td>`; }).join('');
+    return `<tr><td>${met.label}</td>${cells}</tr>`;
+  }).join('')+'</tbody>';
+  $('yearCompare').innerHTML=th+tb;
+  // B-2：單指標趨勢圖
+  if(!$('yearTrendMetric').options.length) fillMetricSelect($('yearTrendMetric'), METRICS, 'roas');
+  renderYearTrendChart();
+  // C：各產品比較矩陣
+  if(!$('yearProdMetric').options.length) fillMetricSelect($('yearProdMetric'), PRODUCT_METRICS, 'roas');
+  renderYearProdTable();
+}
+function renderYearTrendChart(){
+  const ms=currentYearMonths();
+  const met=METRICS.find(m=>m.key===$('yearTrendMetric').value) || METRICS[2];
+  const labels=ms.map(mo=>`${+mo.a.slice(5,7)}月`);
+  const vals=ms.map(mo=>met.calc(yearTotals(periodDates(mo.a,mo.b))));
+  $('yearTrendChart').innerHTML=monthTrendChart(labels,vals,met.fmt,false);
+}
+function prodMonthVal(r,mo,met){
+  const t=agg(r,periodDates(mo.a,mo.b)); t.cpa=t.pur?t.spend/t.pur:null;
+  return met.calc(t);
+}
+function renderYearProdTable(){
+  const ms=currentYearMonths();
+  const met=PRODUCT_METRICS.find(m=>m.key===$('yearProdMetric').value) || PRODUCT_METRICS[0];
+  let rows=prodRows.map(r=>{
+    const m=META[r.name];
+    const applicable = m.type==='cpas' || met.key==='spend' || met.key==='ctr';
+    const vals=ms.map(mo=>applicable?prodMonthVal(r,mo,met):null);
+    return {r,m,vals};
+  }).filter(x=>x.vals.some(v=>v!=null));
+  rows.sort((x,y)=>{
+    const lx=x.vals[x.vals.length-1], ly=y.vals[y.vals.length-1];
+    if(lx==null&&ly==null) return 0; if(lx==null) return 1; if(ly==null) return -1;
+    return ly-lx;
+  });
+  const th='<thead><tr><th>產品</th>'+ms.map(mo=>`<th>${+mo.a.slice(5,7)}月</th>`).join('')+'<th>趨勢</th></tr></thead>';
+  const tb='<tbody>'+rows.map(({r,m,vals})=>{
+    const cells=vals.map(v=>`<td>${v==null||isNaN(v)?'<span class="dim">—</span>':met.fmt(v)}</td>`).join('');
+    const cur=vals[vals.length-1], prev=vals[vals.length-2];
+    const trend= cur!=null&&prev!=null ? (delta(cur,prev,met.goodDir)||'<span class="delta flat">→</span>') : '<span class="dim">—</span>';
+    return `<tr><td><span class="yname" data-row="${esc(r.name).replace(/"/g,'&quot;')}">${m.label}</span></td>${cells}<td>${trend}</td></tr>`;
+  }).join('')+'</tbody>';
+  $('yearProdTbl').innerHTML=th+tb;
 }
 
 // ── 圖表（單一序列）
@@ -78930,6 +79089,27 @@ $('tabs').addEventListener('click', e=>{
 });
 $('psel').onchange=()=>{ period=$('psel').value; render(); };
 $('tabs').querySelector('[data-v=day]').classList.add('on');
+
+// ── 年報：指標切換與逐產品展開
+$('yearTrendMetric').addEventListener('change', renderYearTrendChart);
+$('yearProdMetric').addEventListener('change', renderYearProdTable);
+$('yearProdTbl').addEventListener('click', e=>{
+  const nm=e.target.closest('.yname'); if(!nm) return;
+  const tr=nm.closest('tr');
+  const next=tr.nextElementSibling;
+  $('yearProdTbl').querySelectorAll('tr.yexpand').forEach(x=>x.remove());
+  if(next && next.classList.contains('yexpand')) return;
+  const r=prodRows.find(x=>x.name===nm.dataset.row); if(!r) return;
+  const met=PRODUCT_METRICS.find(m=>m.key===$('yearProdMetric').value) || PRODUCT_METRICS[0];
+  const ms=currentYearMonths();
+  const labels=ms.map(mo=>`${+mo.a.slice(5,7)}月`);
+  const vals=ms.map(mo=>prodMonthVal(r,mo,met));
+  const exp=document.createElement('tr');
+  exp.className='yexpand';
+  exp.innerHTML=`<td colspan="${tr.children.length}">${monthTrendChart(labels,vals,met.fmt,true)}</td>`;
+  tr.after(exp);
+});
+
 fillSel(); render();
 
 // ── 資料過期警示：正常情況資料應到「昨天」。落後 2 天以上代表自動更新出問題了。
