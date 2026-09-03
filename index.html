@@ -80141,55 +80141,58 @@ const META = {
 const ACCTS = {'官網':'官網','MOMO WTR-1500C Ai17 PRO 延長線 風扇(新品預算)':'MOMO','PChome HUB':'PChome','蝦皮 充電頭':'蝦皮'};
 
 // ── 業績×廣告費用率（營管每日業績串接；官網不在此範圍內，只有 PChome/MOMO/蝦皮/燦坤 有業績可比對）
-// 業績來源表本身是「當月累計」數字（不是單日/單週業績，也不能用「今天累計－昨天累計」相減，
-// 因為蝦皮/PC 偶爾會歸零重算或往下修正），所以無論日/週/月報，業績一律取「所選期間最後一天
-// 所在月份、當天(或之前最近一天)可取得的最新一筆累計數字」；廣告花費則對齊同一段「當月1日～
-// 業績資料當天」的累計花費，兩邊統計範圍才會一致。年報則是把每個月各自的最新累計加總起來。
+// 業績來源表本身是「當月累計」數字，不是單日/單週業績。作法：
+//   月報／年報：直接取「當月（或該年每個月）1日～當月最新一筆資料」的累計金額，baseline=0。
+//   日報／週報：要「這段期間自己的」業績，所以扣掉「這段期間開始前一天」的累計當基準，
+//     baseline = 期間開始前一天的累計快照（同一個月內；若期間就是從月初開始，baseline=0）。
+//   期間跨月份時（例如週報橫跨月底），逐月切開分別算差額再加總，因為每個月的累計是各自從 0 開始重算。
+// 0 視同無資料：觀察到月底結算表會把估算欄位清空/歸零，不是當月真的做到 0 業績。
 const REV_CH = {'PChome':'pc','MOMO':'momo','蝦皮':'shopee','燦坤':'tsannkuen'};
-// 每個通路各自找「當月、不晚於 endDate」最新一筆*非空非零*的累計數字。
-// 不同通路的最新資料日常常不一樣（例如月底結算表只留燦坤、PC/MOMO/蝦皮整欄是空的），
-// 不能要求四個通路共用同一個「當天」；0 視同無資料，因為觀察到的都是月底結算表把
-// 估算欄位清空/歸零，不是當月真的做到 0 業績。
 function channelSnapshot(monthPrefix, endDate, key){
   const dates = Object.keys(DATA.revenue||{}).filter(d=>d.slice(0,7)===monthPrefix && d<=endDate).sort();
   for(let i=dates.length-1;i>=0;i--){
     const v = DATA.revenue[dates[i]][key];
-    if(v!=null && v!==0) return {asOf:dates[i], revenue:v};
+    if(v!=null && v!==0) return {asOf:dates[i], value:v};
   }
   return null;
 }
-function spendRevenueFor(ds, keys){
-  if(!ds.length) return {spend:null, revenue:null, ratio:null, asOf:null};
-  const endDate = ds[ds.length-1];
-  const monthPrefix = endDate.slice(0,7), monthStart = monthPrefix+'-01';
+function monthsBetween(a,b){
+  const out=[]; let y=+a.slice(0,4), m=+a.slice(5,7);
+  const endY=+b.slice(0,4), endM=+b.slice(5,7);
+  while(y<endY || (y===endY && m<=endM)){ out.push(`${y}-${String(m).padStart(2,'0')}`); m++; if(m>12){m=1;y++;} }
+  return out;
+}
+function lastDayOfMonth(mo){ const y=+mo.slice(0,4), m=+mo.slice(5,7); return `${mo}-${String(new Date(y,m,0).getDate()).padStart(2,'0')}`; }
+function prevDay(iso){ const t=new Date(iso+'T12:00:00'); t.setDate(t.getDate()-1); return localISO(t); }
+function channelRevenueForRange(a, b, key){
+  let total=0, any=false, lastAsOf=null;
+  for(const mo of monthsBetween(a,b)){
+    const monthStart=mo+'-01', monthEnd=lastDayOfMonth(mo);
+    const sliceStart = mo===a.slice(0,7) ? a : monthStart;
+    const sliceEnd = mo===b.slice(0,7) ? b : monthEnd;
+    const endSnap = channelSnapshot(mo, sliceEnd, key);
+    if(!endSnap) continue;
+    let baseline=0;
+    if(sliceStart!==monthStart){ const baseSnap=channelSnapshot(mo, prevDay(sliceStart), key); if(baseSnap) baseline=baseSnap.value; }
+    any=true; total += (endSnap.value-baseline); lastAsOf=endSnap.asOf;
+  }
+  return any ? {revenue:total, asOf:lastAsOf} : null;
+}
+function spendRevenueFor(ds, a, b, keys){
   let revenue=0, spend=0, any=false, asOf=null;
   for(const key of keys){
-    const snap = channelSnapshot(monthPrefix, endDate, key);
-    if(!snap) continue;
-    any=true; revenue+=snap.revenue;
-    if(!asOf || snap.asOf>asOf) asOf=snap.asOf;
+    const rr = channelRevenueForRange(a,b,key);
+    if(!rr) continue;
+    any=true; revenue+=rr.revenue; if(!asOf||rr.asOf>asOf) asOf=rr.asOf;
     for(const r of prodRows){ const m=META[r.name]; if(REV_CH[m.ch]!==key) continue;
-      for(const d of periodDates(monthStart, snap.asOf)){
-        const c=r.byDate[d]; if(c && c.spend!=null) spend+=c.spend;
-      }
+      for(const d of ds){ const c=r.byDate[d]; if(c && c.spend!=null) spend+=c.spend; }
     }
   }
   return {spend, revenue: any?revenue:null, ratio:(any&&revenue)?spend/revenue*100:null, asOf};
 }
-function spendRevenueForYear(ds, keys){
-  const months=[...new Set(ds.map(d=>d.slice(0,7)))];
-  let spend=0, revenue=0, any=false, lastAsOf=null;
-  for(const mo of months){
-    const daysInMonth = ds.filter(d=>d.slice(0,7)===mo);
-    const r = spendRevenueFor(daysInMonth, keys);
-    if(r.revenue!=null){ revenue+=r.revenue; spend+=r.spend; any=true; if(!lastAsOf||r.asOf>lastAsOf) lastAsOf=r.asOf; }
-  }
-  return {spend, revenue: any?revenue:null, ratio:(any&&revenue)?spend/revenue*100:null, asOf:lastAsOf};
-}
-function revenueTableHTML(ds){
-  const calc = view==='year' ? spendRevenueForYear : spendRevenueFor;
+function revenueTableHTML(ds, a, b){
   const defs = [
-    ['整體（PC＋MOMO＋蝦皮＋燦坤）', ['pc','momo','shopee','tsannkuen']],
+    ['四渠道合計（PC＋MOMO＋蝦皮＋燦坤）', ['pc','momo','shopee','tsannkuen']],
     ['PC（PChome）', ['pc']],
     ['MOMO', ['momo']],
     ['蝦皮', ['shopee']],
@@ -80198,11 +80201,12 @@ function revenueTableHTML(ds){
   ];
   let asOfLabel='';
   const rowsHtml = defs.map(([label,keys])=>{
-    const {spend,revenue,ratio,asOf} = calc(ds,keys);
+    const {spend,revenue,ratio,asOf} = spendRevenueFor(ds,a,b,keys);
     if(asOf && (!asOfLabel || asOf>asOfLabel)) asOfLabel=asOf;
     return `<tr><td>${label}</td><td>${revenue==null?'<span class="dim">無資料</span>':money(revenue)}</td><td>${money(spend)}</td><td>${ratio==null?'<span class="dim">—</span>':pct(ratio)}</td></tr>`;
   }).join('');
-  $('revAsOf').textContent = asOfLabel ? `（業績為當月累計數字，統計至 ${mmdd(asOfLabel)} 最新一筆資料；廣告花費同樣採當月1日至${mmdd(asOfLabel)}的累計，僅計入 PChome／MOMO／蝦皮／燦坤四個有業績可比對的通路，不含官網等其他通路。）` : '（本期間尚無可比對的業績資料。）';
+  const periodWord = view==='day'?'當日':view==='week'?'本週':view==='month'?'當月累計':'年度累計';
+  $('revAsOf').textContent = asOfLabel ? `（業績為${periodWord}金額，依「內銷每日業績」當月累計數字反推計算，最新可用資料至 ${mmdd(asOfLabel)}；廣告花費採同一段期間累計。僅計入 PChome／MOMO／蝦皮／燦坤四個有業績可比對的通路，不含官網等其他通路。業績來源當天若剛好被下修或歸零，數字可能短暫異常，屬原始資料特性。）` : '（本期間尚無可比對的業績資料。）';
   return `<thead><tr><th>項目</th><th>業績</th><th>廣告花費</th><th>廣告費用率</th></tr></thead><tbody>${rowsHtml}</tbody>`;
 }
 
@@ -80232,6 +80236,9 @@ const years = [...new Set(months.map(m=>m.a.slice(0,4)))].map(y=>{
   const b=`${y}-12-31`;
   return {v:`y:${y}`, a:`${y}-01-01`, b, label:`${y}年${b>lastData?'（進行中）':''}`, months:ms};
 });
+// 年報跨月比較用的簡短月份標籤：未滿一個月的當月加註 MTD，避免絕對值指標(花費/轉換價值/購買次數等)
+// 被誤讀成「這個月表現暴跌」——其實只是月份還沒過完。
+function monthColLabel(mo){ return `${+mo.a.slice(5,7)}月${mo.b>lastData?' MTD':''}`; }
 
 function periodDates(a,b){ return dataDates.filter(d=>d>=a&&d<=b); }
 function clicksOf(c){ return c.linkClicks!=null ? c.linkClicks
@@ -80342,7 +80349,7 @@ function render(){
   $('kpis').innerHTML=kpiHTML(T,PT,prevLabel);
 
   // 業績與廣告費用率
-  $('revTbl').innerHTML=revenueTableHTML(ds);
+  $('revTbl').innerHTML=revenueTableHTML(ds,a,b);
 
   // 總表
   $('summary').innerHTML=summaryHTML(per,T);
@@ -80532,7 +80539,7 @@ function renderYearSection(){
   const ms=currentYearMonths();
   const monthTotals=ms.map(mo=>({mo, T:yearTotals(periodDates(mo.a,mo.b))}));
   // B-1：月份比較表（指標為列、月份為欄）
-  const th='<thead><tr><th>指標</th>'+monthTotals.map(({mo})=>`<th>${+mo.a.slice(5,7)}月</th>`).join('')+'</tr></thead>';
+  const th='<thead><tr><th>指標</th>'+monthTotals.map(({mo})=>`<th>${monthColLabel(mo)}</th>`).join('')+'</tr></thead>';
   const tb='<tbody>'+METRICS.map(met=>{
     const cells=monthTotals.map(({T})=>{ const v=met.calc(T); return `<td>${v==null||isNaN(v)?'—':met.fmt(v)}</td>`; }).join('');
     return `<tr><td>${met.label}</td>${cells}</tr>`;
@@ -80550,7 +80557,7 @@ function renderYearSection(){
 function renderYearTrendChart(){
   const ms=currentYearMonths();
   const met=METRICS.find(m=>m.key===$('yearTrendMetric').value) || METRICS[2];
-  const labels=ms.map(mo=>`${+mo.a.slice(5,7)}月`);
+  const labels=ms.map(mo=>monthColLabel(mo));
   const vals=ms.map(mo=>met.calc(yearTotals(periodDates(mo.a,mo.b))));
   $('yearTrendChart').innerHTML=monthTrendChart(labels,vals,met.fmt,false);
 }
@@ -80572,7 +80579,7 @@ function renderYearTaCreative(){
   const ms=currentYearMonths();
   const latestV=ms.length?ms[ms.length-1].v:null;
   $('yearTaCreative').innerHTML=ms.map(mo=>{
-    const label=`${+mo.a.slice(5,7)}月`;
+    const label=monthColLabel(mo);
     const body=prodRows.map(r=>{
       const m=META[r.name];
       const {bestA,bestC}=bestAudCreative(r,m,mo.a,mo.b);
@@ -80605,7 +80612,7 @@ function renderYearProdTable(){
     if(lx==null&&ly==null) return 0; if(lx==null) return 1; if(ly==null) return -1;
     return ly-lx;
   });
-  const th='<thead><tr><th>產品</th>'+ms.map(mo=>`<th>${+mo.a.slice(5,7)}月</th>`).join('')+'<th>趨勢</th></tr></thead>';
+  const th='<thead><tr><th>產品</th>'+ms.map(mo=>`<th>${monthColLabel(mo)}</th>`).join('')+'<th>趨勢</th></tr></thead>';
   const tb='<tbody>'+rows.map(({r,m,vals})=>{
     const cells=vals.map(v=>`<td>${v==null||isNaN(v)?'<span class="dim">—</span>':met.fmt(v)}</td>`).join('');
     const cur=vals[vals.length-1], prev=vals[vals.length-2];
@@ -80739,7 +80746,7 @@ $('yearProdTbl').addEventListener('click', e=>{
   const r=prodRows.find(x=>x.name===nm.dataset.row); if(!r) return;
   const met=PRODUCT_METRICS.find(m=>m.key===$('yearProdMetric').value) || PRODUCT_METRICS[0];
   const ms=currentYearMonths();
-  const labels=ms.map(mo=>`${+mo.a.slice(5,7)}月`);
+  const labels=ms.map(mo=>monthColLabel(mo));
   const vals=ms.map(mo=>prodMonthVal(r,mo,met));
   const exp=document.createElement('tr');
   exp.className='yexpand';
