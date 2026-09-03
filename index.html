@@ -80113,6 +80113,32 @@ footer{margin-top:40px;font-size:12px;color:var(--muted)}
    "shopee": 149000,
    "tsannkuen": 382100
   }
+ },
+ "revenueFinal": {
+  "2026-05": {
+   "momo": 3379000,
+   "pc": 2942000,
+   "shopee": 3328000,
+   "tsannkuen": 11948000
+  },
+  "2026-06": {
+   "momo": 3863000,
+   "pc": 3579000,
+   "shopee": 3618000,
+   "tsannkuen": 11939000
+  },
+  "2026-07": {
+   "momo": null,
+   "pc": 3256000,
+   "shopee": 3594000,
+   "tsannkuen": 14493000
+  },
+  "2026-08": {
+   "momo": 3931000,
+   "pc": 3486000,
+   "shopee": 3515000,
+   "tsannkuen": 14482000
+  }
  }
 }</script>
 <script>
@@ -80170,6 +80196,11 @@ function channelRevenueForRange(a, b, key){
     const monthStart=mo+'-01', monthEnd=lastDayOfMonth(mo);
     const sliceStart = mo===a.slice(0,7) ? a : monthStart;
     const sliceEnd = mo===b.slice(0,7) ? b : monthEnd;
+    // 完整月份優先用「已轉出」的月結真實數字（比每日累計預估準，內銷業績表本身也是這樣算）；
+    // 只有還沒結案的月份(進行中，或該通路那個月剛好沒抓到已轉出數字)才退回用預估累計反推。
+    const isFullMonth = sliceStart===monthStart && sliceEnd===monthEnd;
+    const finalVal = DATA.revenueFinal && DATA.revenueFinal[mo] && DATA.revenueFinal[mo][key];
+    if(isFullMonth && finalVal!=null){ any=true; total+=finalVal; lastAsOf=monthEnd; continue; }
     const endSnap = channelSnapshot(mo, sliceEnd, key);
     if(!endSnap) continue;
     let baseline=0;
@@ -80206,7 +80237,7 @@ function revenueTableHTML(ds, a, b){
     return `<tr><td>${label}</td><td>${revenue==null?'<span class="dim">無資料</span>':money(revenue)}</td><td>${money(spend)}</td><td>${ratio==null?'<span class="dim">—</span>':pct(ratio)}</td></tr>`;
   }).join('');
   const periodWord = view==='day'?'當日':view==='week'?'本週':view==='month'?'當月累計':'年度累計';
-  $('revAsOf').textContent = asOfLabel ? `（業績為${periodWord}金額，依「內銷每日業績」當月累計數字反推計算，最新可用資料至 ${mmdd(asOfLabel)}；廣告花費採同一段期間累計。僅計入 PChome／MOMO／蝦皮／燦坤四個有業績可比對的通路，不含官網等其他通路。業績來源當天若剛好被下修或歸零，數字可能短暫異常，屬原始資料特性。）` : '（本期間尚無可比對的業績資料。）';
+  $('revAsOf').textContent = asOfLabel ? `（業績為${periodWord}金額；已結案的完整月份採「內銷每日業績」表上的已轉出月結數字，進行中的月份／日／週則用當月累計預估反推，最新可用資料至 ${mmdd(asOfLabel)}。廣告花費採同一段期間累計。僅計入 PChome／MOMO／蝦皮／燦坤四個有業績可比對的通路，不含官網等其他通路。）` : '（本期間尚無可比對的業績資料。）';
   return `<thead><tr><th>項目</th><th>業績</th><th>廣告花費</th><th>廣告費用率</th></tr></thead><tbody>${rowsHtml}</tbody>`;
 }
 
