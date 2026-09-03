@@ -191,6 +191,12 @@ footer{margin-top:40px;font-size:12px;color:var(--muted)}
 
   <div class="kpis" id="kpis"></div>
 
+  <div id="revsec">
+    <h2>業績與廣告費用率</h2>
+    <div class="card tblwrap"><table id="revTbl"></table></div>
+    <div class="sub" style="margin-top:8px">廣告費用率 = 廣告花費 ÷ 業績 × 100%；業績來源為營管每日業績表，週末或尚無資料的日子計算時會自動排除，不會用零業績灌高費用率。</div>
+  </div>
+
   <div id="summarysec">
     <h2>全產品總表 <span class="tag" id="tag-scope">總覽</span></h2>
     <div class="card tblwrap"><table id="summary"></table></div>
@@ -79577,7 +79583,537 @@ footer{margin-top:40px;font-size:12px;color:var(--muted)}
    ]
   }
  },
- "creativeLibRefreshedAt": "2026-08-30T22:20:52.610Z"
+ "creativeLibRefreshedAt": "2026-08-30T22:20:52.610Z",
+ "revenue": {
+  "2026-05-04": {
+   "momo": 292000,
+   "pc": 640000,
+   "shopee": 288000,
+   "tsannkuen": 1307200
+  },
+  "2026-05-05": {
+   "momo": 384000,
+   "pc": 740000,
+   "shopee": 419000,
+   "tsannkuen": 1626000
+  },
+  "2026-05-06": {
+   "momo": 487000,
+   "pc": 840000,
+   "shopee": 476000,
+   "tsannkuen": 1867700
+  },
+  "2026-05-07": {
+   "momo": 589000,
+   "pc": 960000,
+   "shopee": 587000,
+   "tsannkuen": 2256700
+  },
+  "2026-05-08": {
+   "momo": 715000,
+   "pc": 1090000,
+   "shopee": 683000,
+   "tsannkuen": 0
+  },
+  "2026-05-11": {
+   "momo": 1059000,
+   "pc": 1340000,
+   "shopee": 979000,
+   "tsannkuen": 1263800
+  },
+  "2026-05-12": {
+   "momo": 1200000,
+   "pc": 1450000,
+   "shopee": 1144000,
+   "tsannkuen": 1649300
+  },
+  "2026-05-13": {
+   "momo": 1333000,
+   "pc": 1570000,
+   "shopee": 1238000,
+   "tsannkuen": 1950800
+  },
+  "2026-05-14": {
+   "momo": 1460000,
+   "pc": 1670000,
+   "shopee": 1389000,
+   "tsannkuen": 2274600
+  },
+  "2026-05-15": {
+   "momo": 1610000,
+   "pc": 1800000,
+   "shopee": 1408000,
+   "tsannkuen": 0
+  },
+  "2026-05-18": {
+   "momo": 1969000,
+   "pc": 2170000,
+   "shopee": 949000,
+   "tsannkuen": 1258000
+  },
+  "2026-05-19": {
+   "momo": 2072000,
+   "pc": 2280000,
+   "shopee": 88000,
+   "tsannkuen": 1628900
+  },
+  "2026-05-20": {
+   "momo": 2191000,
+   "pc": 2400000,
+   "shopee": 169000,
+   "tsannkuen": 2015100
+  },
+  "2026-05-21": {
+   "momo": 2303000,
+   "pc": 2300000,
+   "shopee": 289000,
+   "tsannkuen": 2350500
+  },
+  "2026-05-22": {
+   "momo": 2417000,
+   "pc": 2400000,
+   "shopee": 427000,
+   "tsannkuen": 0
+  },
+  "2026-05-25": {
+   "momo": 2730000,
+   "pc": 2510000,
+   "shopee": 451000,
+   "tsannkuen": 1303900
+  },
+  "2026-05-26": {
+   "momo": 2799000,
+   "pc": 2750000,
+   "shopee": null,
+   "tsannkuen": 1674500
+  },
+  "2026-05-27": {
+   "momo": 2890000,
+   "pc": null,
+   "shopee": 77000,
+   "tsannkuen": 0
+  },
+  "2026-05-28": {
+   "momo": 2983000,
+   "pc": null,
+   "shopee": 167000,
+   "tsannkuen": 372800
+  },
+  "2026-05-29": {
+   "momo": 3115000,
+   "pc": null,
+   "shopee": null,
+   "tsannkuen": 705700
+  },
+  "2026-05-31": {
+   "momo": null,
+   "pc": null,
+   "shopee": null,
+   "tsannkuen": 0
+  },
+  "2026-06-01": {
+   "momo": null,
+   "pc": 240000,
+   "shopee": null,
+   "tsannkuen": 0
+  },
+  "2026-06-02": {
+   "momo": 157000,
+   "pc": 670000,
+   "shopee": 173000,
+   "tsannkuen": 400900
+  },
+  "2026-06-03": {
+   "momo": 275000,
+   "pc": 760000,
+   "shopee": 181000,
+   "tsannkuen": 795000
+  },
+  "2026-06-04": {
+   "momo": 384000,
+   "pc": 850000,
+   "shopee": 295000,
+   "tsannkuen": 1172200
+  },
+  "2026-06-05": {
+   "momo": 495000,
+   "pc": 980000,
+   "shopee": 423000,
+   "tsannkuen": 0
+  },
+  "2026-06-08": {
+   "momo": 807000,
+   "pc": 1260000,
+   "shopee": 694000,
+   "tsannkuen": 1266100
+  },
+  "2026-06-09": {
+   "momo": 945000,
+   "pc": 1380000,
+   "shopee": 797000,
+   "tsannkuen": 1554300
+  },
+  "2026-06-10": {
+   "momo": 1050000,
+   "pc": 1500000,
+   "shopee": 902000,
+   "tsannkuen": 1841200
+  },
+  "2026-06-11": {
+   "momo": 1198000,
+   "pc": 1610000,
+   "shopee": 532000,
+   "tsannkuen": 2173500
+  },
+  "2026-06-12": {
+   "momo": 1331000,
+   "pc": 1760000,
+   "shopee": 143000,
+   "tsannkuen": 0
+  },
+  "2026-06-15": {
+   "momo": 1642000,
+   "pc": 2020000,
+   "shopee": 444000,
+   "tsannkuen": 1214600
+  },
+  "2026-06-16": {
+   "momo": 1796000,
+   "pc": 2160000,
+   "shopee": 519000,
+   "tsannkuen": 1619900
+  },
+  "2026-06-17": {
+   "momo": 1925000,
+   "pc": 2260000,
+   "shopee": 621000,
+   "tsannkuen": 1978600
+  },
+  "2026-06-18": {
+   "momo": 2064000,
+   "pc": 2390000,
+   "shopee": 725000,
+   "tsannkuen": 0
+  },
+  "2026-06-22": {
+   "momo": 2649000,
+   "pc": 2820000,
+   "shopee": 1193000,
+   "tsannkuen": 1910800
+  },
+  "2026-06-23": {
+   "momo": 2829000,
+   "pc": 2960000,
+   "shopee": null,
+   "tsannkuen": 2308800
+  },
+  "2026-06-24": {
+   "momo": 2934000,
+   "pc": 3070000,
+   "shopee": 179000,
+   "tsannkuen": 2679600
+  },
+  "2026-06-25": {
+   "momo": 3056000,
+   "pc": 3190000,
+   "shopee": 305000,
+   "tsannkuen": 3055200
+  },
+  "2026-06-26": {
+   "momo": 3165000,
+   "pc": 3400000,
+   "shopee": 483000,
+   "tsannkuen": 3055200
+  },
+  "2026-06-29": {
+   "momo": 3495000,
+   "pc": null,
+   "shopee": null,
+   "tsannkuen": 0
+  },
+  "2026-06-30": {
+   "momo": null,
+   "pc": null,
+   "shopee": null,
+   "tsannkuen": 0
+  },
+  "2026-07-01": {
+   "momo": null,
+   "pc": null,
+   "shopee": null,
+   "tsannkuen": 0
+  },
+  "2026-07-02": {
+   "momo": 147000,
+   "pc": 580000,
+   "shopee": 132000,
+   "tsannkuen": 444100
+  },
+  "2026-07-03": {
+   "momo": 284000,
+   "pc": 690000,
+   "shopee": 260000,
+   "tsannkuen": 885400
+  },
+  "2026-07-06": {
+   "momo": 600000,
+   "pc": 910000,
+   "shopee": 627000,
+   "tsannkuen": 2347200
+  },
+  "2026-07-07": {
+   "momo": 726000,
+   "pc": 1020000,
+   "shopee": 728000,
+   "tsannkuen": 2802400
+  },
+  "2026-07-08": {
+   "momo": 892000,
+   "pc": 1110000,
+   "shopee": 826000,
+   "tsannkuen": 3229000
+  },
+  "2026-07-09": {
+   "momo": 1030000,
+   "pc": 1230000,
+   "shopee": 960000,
+   "tsannkuen": 0
+  },
+  "2026-07-10": {
+   "momo": 1030000,
+   "pc": 1230000,
+   "shopee": 960000,
+   "tsannkuen": 390100
+  },
+  "2026-07-13": {
+   "momo": 1421000,
+   "pc": 1580000,
+   "shopee": 1455000,
+   "tsannkuen": 1339000
+  },
+  "2026-07-14": {
+   "momo": 1582000,
+   "pc": 1700000,
+   "shopee": 1568000,
+   "tsannkuen": 1734200
+  },
+  "2026-07-15": {
+   "momo": 1738000,
+   "pc": 1840000,
+   "shopee": 105000,
+   "tsannkuen": 2181800
+  },
+  "2026-07-16": {
+   "momo": 1881000,
+   "pc": 1960000,
+   "shopee": 237000,
+   "tsannkuen": 2634000
+  },
+  "2026-07-17": {
+   "momo": 2003000,
+   "pc": 2070000,
+   "shopee": 371000,
+   "tsannkuen": 0
+  },
+  "2026-07-20": {
+   "momo": 2241000,
+   "pc": 2360000,
+   "shopee": 693000,
+   "tsannkuen": 1407500
+  },
+  "2026-07-21": {
+   "momo": 2389000,
+   "pc": 2470000,
+   "shopee": 778000,
+   "tsannkuen": 1862100
+  },
+  "2026-07-22": {
+   "momo": 2562000,
+   "pc": 2560000,
+   "shopee": 879000,
+   "tsannkuen": 2258500
+  },
+  "2026-07-23": {
+   "momo": 2682000,
+   "pc": 2680000,
+   "shopee": 1025000,
+   "tsannkuen": 2693600
+  },
+  "2026-07-24": {
+   "momo": 2826000,
+   "pc": 2800000,
+   "shopee": 682000,
+   "tsannkuen": 0
+  },
+  "2026-07-27": {
+   "momo": 3166000,
+   "pc": 3000000,
+   "shopee": 345000,
+   "tsannkuen": 1261500
+  },
+  "2026-07-28": {
+   "momo": 3291000,
+   "pc": null,
+   "shopee": 424000,
+   "tsannkuen": 0
+  },
+  "2026-07-29": {
+   "momo": 3406000,
+   "pc": null,
+   "shopee": 24000,
+   "tsannkuen": 0
+  },
+  "2026-07-30": {
+   "momo": 3539000,
+   "pc": null,
+   "shopee": 158000,
+   "tsannkuen": 854500
+  },
+  "2026-07-31": {
+   "momo": null,
+   "pc": null,
+   "shopee": null,
+   "tsannkuen": 0
+  },
+  "2026-08-03": {
+   "momo": 173000,
+   "pc": 820000,
+   "shopee": 180000,
+   "tsannkuen": 1013600
+  },
+  "2026-08-04": {
+   "momo": 298000,
+   "pc": 890000,
+   "shopee": 259000,
+   "tsannkuen": 1460900
+  },
+  "2026-08-05": {
+   "momo": 406000,
+   "pc": 1020000,
+   "shopee": 327000,
+   "tsannkuen": 1893200
+  },
+  "2026-08-06": {
+   "momo": 511000,
+   "pc": 1140000,
+   "shopee": 446000,
+   "tsannkuen": 2367100
+  },
+  "2026-08-07": {
+   "momo": 635000,
+   "pc": 1330000,
+   "shopee": 608000,
+   "tsannkuen": 0
+  },
+  "2026-08-10": {
+   "momo": 982000,
+   "pc": 1640000,
+   "shopee": 946000,
+   "tsannkuen": 1437900
+  },
+  "2026-08-11": {
+   "momo": 1111000,
+   "pc": 1790000,
+   "shopee": 1043000,
+   "tsannkuen": 1851400
+  },
+  "2026-08-12": {
+   "momo": 1246000,
+   "pc": 1920000,
+   "shopee": 1124000,
+   "tsannkuen": 2262500
+  },
+  "2026-08-13": {
+   "momo": 1387000,
+   "pc": 2020000,
+   "shopee": 1259000,
+   "tsannkuen": 2730900
+  },
+  "2026-08-14": {
+   "momo": 1530000,
+   "pc": 2110000,
+   "shopee": 830000,
+   "tsannkuen": 0
+  },
+  "2026-08-17": {
+   "momo": 1941000,
+   "pc": 2360000,
+   "shopee": 1168000,
+   "tsannkuen": 1360100
+  },
+  "2026-08-18": {
+   "momo": 2098000,
+   "pc": 2460000,
+   "shopee": 603000,
+   "tsannkuen": 1811900
+  },
+  "2026-08-19": {
+   "momo": 2297000,
+   "pc": 2580000,
+   "shopee": 684000,
+   "tsannkuen": 2281500
+  },
+  "2026-08-20": {
+   "momo": 2532000,
+   "pc": 2660000,
+   "shopee": 792000,
+   "tsannkuen": 2653000
+  },
+  "2026-08-21": {
+   "momo": 2554000,
+   "pc": 2810000,
+   "shopee": 490000,
+   "tsannkuen": 0
+  },
+  "2026-08-24": {
+   "momo": 2890000,
+   "pc": 3110000,
+   "shopee": 393000,
+   "tsannkuen": 1368000
+  },
+  "2026-08-25": {
+   "momo": 3024000,
+   "pc": 3280000,
+   "shopee": 480000,
+   "tsannkuen": 1762500
+  },
+  "2026-08-26": {
+   "momo": 3149000,
+   "pc": 3380000,
+   "shopee": 575000,
+   "tsannkuen": 0
+  },
+  "2026-08-27": {
+   "momo": 3297000,
+   "pc": null,
+   "shopee": 377000,
+   "tsannkuen": 524000
+  },
+  "2026-08-28": {
+   "momo": 3423000,
+   "pc": null,
+   "shopee": 202000,
+   "tsannkuen": 990600
+  },
+  "2026-08-31": {
+   "momo": null,
+   "pc": null,
+   "shopee": null,
+   "tsannkuen": 0
+  },
+  "2026-09-01": {
+   "momo": null,
+   "pc": 321000,
+   "shopee": null,
+   "tsannkuen": 0
+  },
+  "2026-09-02": {
+   "momo": 171000,
+   "pc": 880000,
+   "shopee": 149000,
+   "tsannkuen": 382100
+  }
+ }
 }</script>
 <script>
 const DATA = JSON.parse(document.getElementById('data').textContent);
@@ -79603,6 +80139,38 @@ const META = {
   '燦坤':                     {label:'燦坤',         ch:'燦坤', type:'traffic'},
 };
 const ACCTS = {'官網':'官網','MOMO WTR-1500C Ai17 PRO 延長線 風扇(新品預算)':'MOMO','PChome HUB':'PChome','蝦皮 充電頭':'蝦皮'};
+
+// ── 業績×廣告費用率（營管每日業績串接；官網不在此範圍內，只有 PChome/MOMO/蝦皮/燦坤 有業績可比對）
+const REV_CH = {'PChome':'pc','MOMO':'momo','蝦皮':'shopee','燦坤':'tsannkuen'};
+function spendRevenueFor(ds, keys){
+  let spend=0, revenue=0, days=0;
+  for(const d of ds){
+    const rv = DATA.revenue && DATA.revenue[d]; if(!rv) continue;
+    const vals = keys.map(k=>rv[k]).filter(v=>v!=null);
+    if(!vals.length) continue;
+    days++; revenue += vals.reduce((a,b)=>a+b,0);
+    for(const r of prodRows){ const m=META[r.name]; const key=REV_CH[m.ch];
+      if(!key || !keys.includes(key) || rv[key]==null) continue;
+      const c=r.byDate[d]; if(c && c.spend!=null) spend+=c.spend;
+    }
+  }
+  return {spend, revenue: days?revenue:null, ratio: (days&&revenue)?spend/revenue*100:null};
+}
+function revenueTableHTML(ds){
+  const defs = [
+    ['整體（PC＋MOMO＋蝦皮＋燦坤）', ['pc','momo','shopee','tsannkuen']],
+    ['PC（PChome）', ['pc']],
+    ['MOMO', ['momo']],
+    ['蝦皮', ['shopee']],
+    ['燦坤', ['tsannkuen']],
+    ['PC＋MOMO＋蝦皮／整體電商', ['pc','momo','shopee']],
+  ];
+  const rowsHtml = defs.map(([label,keys])=>{
+    const {spend,revenue,ratio} = spendRevenueFor(ds,keys);
+    return `<tr><td>${label}</td><td>${revenue==null?'<span class="dim">無資料</span>':money(revenue)}</td><td>${money(spend)}</td><td>${ratio==null?'<span class="dim">—</span>':pct(ratio)}</td></tr>`;
+  }).join('');
+  return `<thead><tr><th>項目</th><th>業績</th><th>廣告花費</th><th>廣告費用率</th></tr></thead><tbody>${rowsHtml}</tbody>`;
+}
 
 const $ = id => document.getElementById(id);
 const fm = (n,d=0) => n==null||isNaN(n)?'—':n.toLocaleString('zh-TW',{maximumFractionDigits:d,minimumFractionDigits:d});
@@ -79738,6 +80306,9 @@ function render(){
   const per = prodRows.map(r=>({r, m:META[r.name], t:agg(r,ds)})).filter(x=>x.t.days>0);
   const T=totalsOf(ds);
   $('kpis').innerHTML=kpiHTML(T,PT,prevLabel);
+
+  // 業績與廣告費用率
+  $('revTbl').innerHTML=revenueTableHTML(ds);
 
   // 總表
   $('summary').innerHTML=summaryHTML(per,T);
