@@ -80193,11 +80193,11 @@ function spendRevenueFor(ds, a, b, keys){
 function revenueTableHTML(ds, a, b){
   const defs = [
     ['四渠道合計（PC＋MOMO＋蝦皮＋燦坤）', ['pc','momo','shopee','tsannkuen']],
-    ['PC（PChome）', ['pc']],
+    ['PChome', ['pc']],
     ['MOMO', ['momo']],
     ['蝦皮', ['shopee']],
     ['燦坤', ['tsannkuen']],
-    ['PC＋MOMO＋蝦皮／整體電商', ['pc','momo','shopee']],
+    ['整體電商合計（PC＋MOMO＋蝦皮）', ['pc','momo','shopee']],
   ];
   let asOfLabel='';
   const rowsHtml = defs.map(([label,keys])=>{
