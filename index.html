@@ -157,9 +157,19 @@ tr.ttl td{border-top:2px solid var(--baseline);font-weight:700;background:color-
 .yname{cursor:pointer;color:var(--accent)}
 .yname:hover{text-decoration:underline}
 .yexpand td{padding:14px 16px 6px;background:color-mix(in srgb,var(--accent) 3%,transparent)}
-.ymonth{margin-bottom:6px}
-.ymonth+.ymonth{border-top:1px solid var(--grid);padding-top:12px;margin-top:12px}
-.ymonth-h{font-weight:700;font-size:13.5px;margin-bottom:8px}
+.ydetails{margin-bottom:12px;overflow:hidden}
+.ydetails>summary{list-style:none;cursor:pointer;padding:14px 18px;display:flex;align-items:center;
+  gap:8px 24px;flex-wrap:wrap}
+.ydetails>summary::-webkit-details-marker{display:none}
+.ydetails[open]>summary{border-bottom:1px solid var(--grid)}
+.ysum-m{font-size:16px;font-weight:800;min-width:56px}
+.ycar{margin-left:auto;font-size:12px;color:var(--accent);white-space:nowrap}
+.ycar::before{content:"展開 ▸"}
+.ydetails[open] .ycar::before{content:"收合 ▾"}
+.ybody{padding:16px 18px 22px}
+.sec-prod{margin-bottom:16px}
+.sec-prod+.sec-prod{border-top:1px solid var(--grid);padding-top:14px;margin-top:14px}
+.sec-prod-h{font-weight:700;font-size:14.5px;margin-bottom:8px}
 footer{margin-top:40px;font-size:12px;color:var(--muted)}
 </style>
 <div class="wrap">
@@ -209,6 +219,9 @@ footer{margin-top:40px;font-size:12px;color:var(--muted)}
       </label>
     </div>
     <div class="card tblwrap"><table id="yearProdTbl"></table></div>
+
+    <h2>各月最佳 TA／素材成效</h2>
+    <div id="yearTaCreative"></div>
   </div>
 
   <div id="tilessec">
@@ -79926,6 +79939,8 @@ function renderYearSection(){
   // C：各產品比較矩陣
   if(!$('yearProdMetric').options.length) fillMetricSelect($('yearProdMetric'), PRODUCT_METRICS, 'roas');
   renderYearProdTable();
+  // D：每月最佳 TA／素材（所有產品）
+  renderYearTaCreative();
 }
 function renderYearTrendChart(){
   const ms=currentYearMonths();
@@ -79947,19 +79962,28 @@ function bestAudCreative(r,m,a,b){
     bestC:[...crs].sort((x,y)=>sortKey(y)-sortKey(x)).slice(0,3),
   };
 }
-// 單一產品逐月 TOP3 受眾／素材（年報用：不是年度累計，是分開每個月看）
-function monthlyTaCreativeHTML(r,m,ms){
-  return ms.map(mo=>{
-    const {bestA,bestC}=bestAudCreative(r,m,mo.a,mo.b);
+// 每個月最佳 TA／素材（所有產品一起列出；不是年度累計，是分開每個月看）
+function renderYearTaCreative(){
+  const ms=currentYearMonths();
+  const latestV=ms.length?ms[ms.length-1].v:null;
+  $('yearTaCreative').innerHTML=ms.map(mo=>{
     const label=`${+mo.a.slice(5,7)}月`;
-    if(!bestA.length && !bestC.length) return `<div class="ymonth"><div class="ymonth-h">${label}</div><div class="dim" style="font-size:12.5px">本月無數據</div></div>`;
-    return `<div class="ymonth">
-      <div class="ymonth-h">${label}</div>
-      <div class="pbody">
-        ${listSec('最佳受眾 TOP3',bestA,false,m.type,'本月無數據')}
-        ${listSec('最佳素材 TOP3',bestC,true,m.type,'本月無數據')}
-      </div>
-    </div>`;
+    const body=prodRows.map(r=>{
+      const m=META[r.name];
+      const {bestA,bestC}=bestAudCreative(r,m,mo.a,mo.b);
+      if(!bestA.length && !bestC.length) return '';
+      return `<div class="sec-prod">
+        <div class="sec-prod-h">${m.label}<span class="chip ${m.type}">${m.ch}·${m.type==='cpas'?'CPAS':'流量'}</span></div>
+        <div class="pbody">
+          ${listSec('最佳受眾 TOP3',bestA,false,m.type,'本月無數據')}
+          ${listSec('最佳素材 TOP3',bestC,true,m.type,'本月無數據')}
+        </div>
+      </div>`;
+    }).join('');
+    return `<details class="card ydetails"${mo.v===latestV?' open':''}>
+      <summary><span class="ysum-m">${label}</span><span class="ycar"></span></summary>
+      <div class="ybody">${body||'<div class="dim">本月無受眾／素材資料</div>'}</div>
+    </details>`;
   }).join('');
 }
 function renderYearProdTable(){
@@ -80108,17 +80132,13 @@ $('yearProdTbl').addEventListener('click', e=>{
   $('yearProdTbl').querySelectorAll('tr.yexpand').forEach(x=>x.remove());
   if(next && next.classList.contains('yexpand')) return;
   const r=prodRows.find(x=>x.name===nm.dataset.row); if(!r) return;
-  const m=META[r.name];
   const met=PRODUCT_METRICS.find(m=>m.key===$('yearProdMetric').value) || PRODUCT_METRICS[0];
   const ms=currentYearMonths();
   const labels=ms.map(mo=>`${+mo.a.slice(5,7)}月`);
   const vals=ms.map(mo=>prodMonthVal(r,mo,met));
   const exp=document.createElement('tr');
   exp.className='yexpand';
-  exp.innerHTML=`<td colspan="${tr.children.length}">
-    ${monthTrendChart(labels,vals,met.fmt,true)}
-    <div class="ymonths">${monthlyTaCreativeHTML(r,m,ms)}</div>
-  </td>`;
+  exp.innerHTML=`<td colspan="${tr.children.length}">${monthTrendChart(labels,vals,met.fmt,true)}</td>`;
   tr.after(exp);
 });
 
