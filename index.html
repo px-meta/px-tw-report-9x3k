@@ -79660,7 +79660,7 @@ function suggest(m, t, best, worst){
 function itemHtml(x, isCreative, type){
   const lib = isCreative ? LIB[x.name] : audLib(x.row, x.name);
   const mt = type==='cpas'
-    ? `<span class="mt ${x.roas>=3?'g':(x.roas<1&&x.spend>0?'b':'')}">ROAS ${fm(x.roas,2)}</span> <span class="dim">${money(x.sales)}</span>`
+    ? `<span class="mt ${x.roas>=3?'g':(x.roas<1&&x.spend>0?'b':'')}">ROAS ${fm(x.roas,2)}</span> <span class="dim">CTR ${pct(x.ctr)}｜${money(x.sales)}</span>`
     : `<span class="mt">CTR ${pct(x.ctr)}</span> <span class="dim">${fm(x.clicks)}點擊</span>`;
   // 縮圖優先用內嵌 base64（離線可看），沒有時退回 Facebook CDN 大圖
   const thumbSrc = isCreative&&lib ? (lib.img||lib.big||(lib.products&&lib.products[0]&&lib.products[0].img)) : null;
