@@ -194,7 +194,7 @@ footer{margin-top:40px;font-size:12px;color:var(--muted)}
   <div id="revsec">
     <h2>業績與廣告費用率</h2>
     <div class="card tblwrap"><table id="revTbl"></table></div>
-    <div class="sub" style="margin-top:8px">廣告費用率 = 廣告花費 ÷ 業績 × 100%；業績來源為營管每日業績表，週末或尚無資料的日子計算時會自動排除，不會用零業績灌高費用率。</div>
+    <div class="sub" style="margin-top:8px" id="revAsOf"></div>
   </div>
 
   <div id="summarysec">
@@ -80141,22 +80141,53 @@ const META = {
 const ACCTS = {'官網':'官網','MOMO WTR-1500C Ai17 PRO 延長線 風扇(新品預算)':'MOMO','PChome HUB':'PChome','蝦皮 充電頭':'蝦皮'};
 
 // ── 業績×廣告費用率（營管每日業績串接；官網不在此範圍內，只有 PChome/MOMO/蝦皮/燦坤 有業績可比對）
+// 業績來源表本身是「當月累計」數字（不是單日/單週業績，也不能用「今天累計－昨天累計」相減，
+// 因為蝦皮/PC 偶爾會歸零重算或往下修正），所以無論日/週/月報，業績一律取「所選期間最後一天
+// 所在月份、當天(或之前最近一天)可取得的最新一筆累計數字」；廣告花費則對齊同一段「當月1日～
+// 業績資料當天」的累計花費，兩邊統計範圍才會一致。年報則是把每個月各自的最新累計加總起來。
 const REV_CH = {'PChome':'pc','MOMO':'momo','蝦皮':'shopee','燦坤':'tsannkuen'};
+// 每個通路各自找「當月、不晚於 endDate」最新一筆*非空非零*的累計數字。
+// 不同通路的最新資料日常常不一樣（例如月底結算表只留燦坤、PC/MOMO/蝦皮整欄是空的），
+// 不能要求四個通路共用同一個「當天」；0 視同無資料，因為觀察到的都是月底結算表把
+// 估算欄位清空/歸零，不是當月真的做到 0 業績。
+function channelSnapshot(monthPrefix, endDate, key){
+  const dates = Object.keys(DATA.revenue||{}).filter(d=>d.slice(0,7)===monthPrefix && d<=endDate).sort();
+  for(let i=dates.length-1;i>=0;i--){
+    const v = DATA.revenue[dates[i]][key];
+    if(v!=null && v!==0) return {asOf:dates[i], revenue:v};
+  }
+  return null;
+}
 function spendRevenueFor(ds, keys){
-  let spend=0, revenue=0, days=0;
-  for(const d of ds){
-    const rv = DATA.revenue && DATA.revenue[d]; if(!rv) continue;
-    const vals = keys.map(k=>rv[k]).filter(v=>v!=null);
-    if(!vals.length) continue;
-    days++; revenue += vals.reduce((a,b)=>a+b,0);
-    for(const r of prodRows){ const m=META[r.name]; const key=REV_CH[m.ch];
-      if(!key || !keys.includes(key) || rv[key]==null) continue;
-      const c=r.byDate[d]; if(c && c.spend!=null) spend+=c.spend;
+  if(!ds.length) return {spend:null, revenue:null, ratio:null, asOf:null};
+  const endDate = ds[ds.length-1];
+  const monthPrefix = endDate.slice(0,7), monthStart = monthPrefix+'-01';
+  let revenue=0, spend=0, any=false, asOf=null;
+  for(const key of keys){
+    const snap = channelSnapshot(monthPrefix, endDate, key);
+    if(!snap) continue;
+    any=true; revenue+=snap.revenue;
+    if(!asOf || snap.asOf>asOf) asOf=snap.asOf;
+    for(const r of prodRows){ const m=META[r.name]; if(REV_CH[m.ch]!==key) continue;
+      for(const d of periodDates(monthStart, snap.asOf)){
+        const c=r.byDate[d]; if(c && c.spend!=null) spend+=c.spend;
+      }
     }
   }
-  return {spend, revenue: days?revenue:null, ratio: (days&&revenue)?spend/revenue*100:null};
+  return {spend, revenue: any?revenue:null, ratio:(any&&revenue)?spend/revenue*100:null, asOf};
+}
+function spendRevenueForYear(ds, keys){
+  const months=[...new Set(ds.map(d=>d.slice(0,7)))];
+  let spend=0, revenue=0, any=false, lastAsOf=null;
+  for(const mo of months){
+    const daysInMonth = ds.filter(d=>d.slice(0,7)===mo);
+    const r = spendRevenueFor(daysInMonth, keys);
+    if(r.revenue!=null){ revenue+=r.revenue; spend+=r.spend; any=true; if(!lastAsOf||r.asOf>lastAsOf) lastAsOf=r.asOf; }
+  }
+  return {spend, revenue: any?revenue:null, ratio:(any&&revenue)?spend/revenue*100:null, asOf:lastAsOf};
 }
 function revenueTableHTML(ds){
+  const calc = view==='year' ? spendRevenueForYear : spendRevenueFor;
   const defs = [
     ['整體（PC＋MOMO＋蝦皮＋燦坤）', ['pc','momo','shopee','tsannkuen']],
     ['PC（PChome）', ['pc']],
@@ -80165,10 +80196,13 @@ function revenueTableHTML(ds){
     ['燦坤', ['tsannkuen']],
     ['PC＋MOMO＋蝦皮／整體電商', ['pc','momo','shopee']],
   ];
+  let asOfLabel='';
   const rowsHtml = defs.map(([label,keys])=>{
-    const {spend,revenue,ratio} = spendRevenueFor(ds,keys);
+    const {spend,revenue,ratio,asOf} = calc(ds,keys);
+    if(asOf && (!asOfLabel || asOf>asOfLabel)) asOfLabel=asOf;
     return `<tr><td>${label}</td><td>${revenue==null?'<span class="dim">無資料</span>':money(revenue)}</td><td>${money(spend)}</td><td>${ratio==null?'<span class="dim">—</span>':pct(ratio)}</td></tr>`;
   }).join('');
+  $('revAsOf').textContent = asOfLabel ? `（業績為當月累計數字，統計至 ${mmdd(asOfLabel)} 最新一筆資料；廣告花費同樣採當月1日至${mmdd(asOfLabel)}的累計，僅計入 PChome／MOMO／蝦皮／燦坤四個有業績可比對的通路，不含官網等其他通路。）` : '（本期間尚無可比對的業績資料。）';
   return `<thead><tr><th>項目</th><th>業績</th><th>廣告花費</th><th>廣告費用率</th></tr></thead><tbody>${rowsHtml}</tbody>`;
 }
 
